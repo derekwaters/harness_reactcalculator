@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_derekwaters_harness_reactcalculator_1701044634151-push-trigger-input-set
+  identifier: Build_derekwaters_harness_reactcalculator_1701044634151pushtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: default_project
+  pipeline:
+    identifier: Build_derekwaters_harness_reactcalculator_1701044634151
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
