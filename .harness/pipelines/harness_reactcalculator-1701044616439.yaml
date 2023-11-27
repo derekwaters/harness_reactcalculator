@@ -37,7 +37,7 @@ pipeline:
                     connectorRef: account.harnessImage
                     image: plugins/ansible:3
                     shell: Bash
-                    command: /etc/ansible --version
+                    command: ansible-runner --version
                     imagePullPolicy: IfNotPresent
                   description: Run Ansible Stuff
           platform:
