@@ -29,10 +29,21 @@ pipeline:
                       npm install
                       npm run build --if-present
                       npm test
+              - step:
+                  type: Run
+                  name: Run_Ansible
+                  identifier: Run_Ansible
+                  spec:
+                    connectorRef: account.harnessImage
+                    image: plugins/ansible:3
+                    shell: Bash
+                    command: /etc/ansible --version
+                    imagePullPolicy: IfNotPresent
+                  description: Run Ansible Stuff
           platform:
             os: Linux
             arch: Amd64
           runtime:
-            type: Cloud
+            type: Docker
             spec: {}
         type: CI
