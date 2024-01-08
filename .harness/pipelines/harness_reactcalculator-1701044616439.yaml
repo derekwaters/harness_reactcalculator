@@ -47,3 +47,96 @@ pipeline:
             type: Cloud
             spec: {}
         type: CI
+    - stage:
+        name: ready_to_deploy
+        identifier: ready_to_deploy
+        description: ""
+        type: Approval
+        spec:
+          execution:
+            steps:
+              - step:
+                  name: approve_the_thing
+                  identifier: approve_the_thing
+                  type: HarnessApproval
+                  timeout: 1d
+                  spec:
+                    approvalMessage: |-
+                      Please review the following information
+                      and approve the pipeline progression
+                    includePipelineExecutionHistory: true
+                    approvers:
+                      minimumCount: 1
+                      disallowPipelineExecutor: false
+                      userGroups:
+                        - account._account_all_users
+                    isAutoRejectEnabled: false
+                    approverInputs: []
+        tags: {}
+    - stage:
+        name: deploy
+        identifier: deploy
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: k8s_Service
+          environment:
+            environmentRef: OpenShiftTarget
+            deployToAll: false
+            infrastructureDefinitions:
+              - identifier: OpenShift_on_AWS
+          execution:
+            steps:
+              - step:
+                  name: Stage Deployment
+                  identifier: stageDeployment
+                  type: K8sBlueGreenDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+              - step:
+                  name: Swap primary with stage service
+                  identifier: bgSwapServices
+                  type: K8sBGSwapServices
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+            rollbackSteps:
+              - step:
+                  name: Swap primary with stage service
+                  identifier: rollbackBgSwapServices
+                  type: K8sBGSwapServices
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+    - stage:
+        name: post_deploy_tvt
+        identifier: post_deploy_tvt
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: Http
+                  name: launch_aap_job
+                  identifier: launch_aap_job
+                  spec:
+                    url: https://myaapserver.com/api/v2/jobs/12345/webhook/3/
+                    method: GET
+                    headers: []
+                    inputVariables: []
+                    outputVariables: []
+                    requestBody: "{ \"some_data\": \"something\" }"
+                  timeout: 10s
+        tags: {}
